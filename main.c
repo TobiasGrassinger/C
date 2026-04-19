@@ -8,17 +8,16 @@ LRESULT CALLBACK process_window
     LPARAM parameter_l
 )
 {
+    LRESULT result = 0;
+
     switch (message_code)
     {
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            return 0;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
+        default:
+            result = DefWindowProc(handle_window, message_code, parameter_w, parameter_l);
+        break;
     }
 
-    return DefWindowProc(handle_window, message_code, parameter_w, parameter_l);
+    return result;
 }
 
 int create_window()
@@ -36,15 +35,17 @@ int create_window()
     window_class.hInstance = handle_instance;
     window_class.lpszClassName = class_name;
 
-    if (!RegisterClassEx(&window_class)) {
+    ATOM register_class_return = RegisterClassEx(&window_class);
+
+    if (register_class_return == 0) {
         return 0;
-    };
+    }
 
     HWND window_handle = CreateWindowEx(
         0,
         class_name,
         window_title,
-        WS_POPUP,
+        WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
