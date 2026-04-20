@@ -12,9 +12,14 @@ LRESULT CALLBACK process_window
 
     switch (message_code)
     {
+        case WM_CLOSE:
+            PostQuitMessage(0);
+            break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
         default:
             result = DefWindowProc(handle_window, message_code, parameter_w, parameter_l);
-        break;
     }
 
     return result;
@@ -45,7 +50,7 @@ int create_window()
         0,
         class_name,
         window_title,
-        WS_OVERLAPPEDWINDOW,
+        WS_SIZEBOX | WS_VISIBLE,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
