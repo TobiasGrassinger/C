@@ -1,6 +1,13 @@
 #include <windows.h>
+#include <windowsx.h>
 
 #include "color_palettes.h"
+
+const int TITLEBAR_HEIGHT = 40;
+
+const int CLOSE_BUTTON_WIDTH = 50;
+const int CLOSE_BUTTON_HEIGHT = 20;
+const int CLOSE_BUTTON_PADDING = 10;
 
 LRESULT CALLBACK process_window
 (
@@ -13,9 +20,9 @@ LRESULT CALLBACK process_window
     switch (message_code)
     {
         case WM_NCHITTEST:
-            POINT mouse_coordinates = {0};
-            mouse_coordinates.x = LOWORD(parameter_l);
-            mouse_coordinates.y = HIWORD(parameter_l);
+            POINT mouse_coordinates;
+            mouse_coordinates.x = GET_X_LPARAM(parameter_l);
+            mouse_coordinates.y = GET_Y_LPARAM(parameter_l);
 
             ScreenToClient(handle_window, &mouse_coordinates);
 
@@ -35,10 +42,26 @@ LRESULT CALLBACK process_window
             DeleteObject(brush);
 
             // Title Bar
-            RECT title_bar = {0, 0, paint_struct.rcPaint.right, 40};
+            RECT title_bar;
+            title_bar.left = 0;
+            title_bar.right = paint_struct.rcPaint.right;
+            title_bar.top = 0;
+            title_bar.bottom = TITLEBAR_HEIGHT;
+
             HBRUSH title_brush = CreateSolidBrush(COLOR_2);
             FillRect(handle_device_context, &title_bar, title_brush);
             DeleteObject(title_brush);
+
+            //Close Button
+            RECT close_button;
+            close_button.left = paint_struct.rcPaint.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
+            close_button.right = paint_struct.rcPaint.right - CLOSE_BUTTON_PADDING;
+            close_button.top = CLOSE_BUTTON_PADDING;
+            close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
+
+            HBRUSH close_brush = CreateSolidBrush(COLOR_5);
+            FillRect(handle_device_context, &close_button, close_brush);
+            DeleteObject(close_brush);
 
             EndPaint(handle_window, &paint_struct);
 
