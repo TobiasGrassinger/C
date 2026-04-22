@@ -19,19 +19,60 @@ LRESULT CALLBACK process_window
 {
     switch (message_code)
     {
+        case WM_ERASEBKGND:
+        {
+            return 1;
+        }
+
         case WM_NCHITTEST:
+        {
+            POINT mouse_coordinates;
+            mouse_coordinates.x = GET_X_LPARAM(parameter_l);
+            mouse_coordinates.y = GET_Y_LPARAM(parameter_l);
+            ScreenToClient(handle_window, &mouse_coordinates);
+
+            RECT window_rect;
+            GetClientRect(handle_window, &window_rect);
+
+            RECT close_button;
+            close_button.left = window_rect.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
+            close_button.top = CLOSE_BUTTON_PADDING;
+            close_button.right = window_rect.right - CLOSE_BUTTON_PADDING;
+            close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
+
+            if (PtInRect(&close_button, mouse_coordinates))
+                return HTCLIENT;
+
+            if (mouse_coordinates.y < TITLEBAR_HEIGHT)
+                return HTCAPTION;
+
+            return HTCLIENT;
+        }
+
+        case WM_LBUTTONDOWN:
+        {
             POINT mouse_coordinates;
             mouse_coordinates.x = GET_X_LPARAM(parameter_l);
             mouse_coordinates.y = GET_Y_LPARAM(parameter_l);
 
-            ScreenToClient(handle_window, &mouse_coordinates);
+            RECT window_rect;
+            GetClientRect(handle_window, &window_rect);
 
-            if (mouse_coordinates.y < 40)
-                return HTCAPTION;
+            RECT close_button;
+            close_button.left = window_rect.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
+            close_button.top = CLOSE_BUTTON_PADDING;
+            close_button.right = window_rect.right - CLOSE_BUTTON_PADDING;
+            close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
 
-            return HTCLIENT;
+            if (PtInRect(&close_button, mouse_coordinates)) {
+                PostQuitMessage(0);
+            }
+
+            return 0;
+        }
 
         case WM_PAINT:
+        {
             PAINTSTRUCT paint_struct;
 
             HDC handle_device_context = BeginPaint(handle_window, &paint_struct);
@@ -44,19 +85,26 @@ LRESULT CALLBACK process_window
             // Title Bar
             RECT title_bar;
             title_bar.left = 0;
-            title_bar.right = paint_struct.rcPaint.right;
             title_bar.top = 0;
+            title_bar.right = paint_struct.rcPaint.right;
             title_bar.bottom = TITLEBAR_HEIGHT;
 
             HBRUSH title_brush = CreateSolidBrush(COLOR_2);
             FillRect(handle_device_context, &title_bar, title_brush);
             DeleteObject(title_brush);
 
+            // Border
+            RECT border = paint_struct.rcPaint;
+
+            HBRUSH border_brush = CreateSolidBrush(COLOR_3);
+            FrameRect(handle_device_context, &border, border_brush);
+            DeleteObject(border_brush);
+
             //Close Button
             RECT close_button;
             close_button.left = paint_struct.rcPaint.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
-            close_button.right = paint_struct.rcPaint.right - CLOSE_BUTTON_PADDING;
             close_button.top = CLOSE_BUTTON_PADDING;
+            close_button.right = paint_struct.rcPaint.right - CLOSE_BUTTON_PADDING;
             close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
 
             HBRUSH close_brush = CreateSolidBrush(COLOR_5);
@@ -66,14 +114,19 @@ LRESULT CALLBACK process_window
             EndPaint(handle_window, &paint_struct);
 
             return 0;
+        }
 
         case WM_CLOSE:
+        {
             PostQuitMessage(0);
             return 0;
+        }
 
         case WM_DESTROY:
+        {
             PostQuitMessage(0);
             return 0;
+        }
     }
 
     return DefWindowProc(handle_window, message_code, parameter_w, parameter_l);
