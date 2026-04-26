@@ -55,13 +55,13 @@ LRESULT CALLBACK process_window
             mouse_coordinates.x = GET_X_LPARAM(parameter_l);
             mouse_coordinates.y = GET_Y_LPARAM(parameter_l);
 
-            RECT window_rect;
-            GetClientRect(handle_window, &window_rect);
+            RECT window_rectangle;
+            GetClientRect(handle_window, &window_rectangle);
 
             RECT close_button;
-            close_button.left = window_rect.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
+            close_button.left = window_rectangle.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
             close_button.top = CLOSE_BUTTON_PADDING;
-            close_button.right = window_rect.right - CLOSE_BUTTON_PADDING;
+            close_button.right = window_rectangle.right - CLOSE_BUTTON_PADDING;
             close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
 
             if (PtInRect(&close_button, mouse_coordinates)) {
@@ -74,19 +74,21 @@ LRESULT CALLBACK process_window
         case WM_PAINT:
         {
             PAINTSTRUCT paint_struct;
-
             HDC handle_device_context = BeginPaint(handle_window, &paint_struct);
 
-            // BG
-            HBRUSH brush = CreateSolidBrush(COLOR_1);
-            FillRect(handle_device_context, &paint_struct.rcPaint, brush);
-            DeleteObject(brush);
+            RECT window_rectangle;
+            GetClientRect(handle_window, &window_rectangle);
+
+            // Background
+            HBRUSH background_brush = CreateSolidBrush(COLOR_1);
+            FillRect(handle_device_context, &window_rectangle, background_brush);
+            DeleteObject(background_brush);
 
             // Title Bar
             RECT title_bar;
             title_bar.left = 0;
             title_bar.top = 0;
-            title_bar.right = paint_struct.rcPaint.right;
+            title_bar.right = window_rectangle.right;
             title_bar.bottom = TITLEBAR_HEIGHT;
 
             HBRUSH title_brush = CreateSolidBrush(COLOR_2);
@@ -94,17 +96,15 @@ LRESULT CALLBACK process_window
             DeleteObject(title_brush);
 
             // Border
-            RECT border = paint_struct.rcPaint;
-
             HBRUSH border_brush = CreateSolidBrush(COLOR_3);
-            FrameRect(handle_device_context, &border, border_brush);
+            FrameRect(handle_device_context, &window_rectangle, border_brush);
             DeleteObject(border_brush);
 
             //Close Button
             RECT close_button;
-            close_button.left = paint_struct.rcPaint.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
+            close_button.left = window_rectangle.right - CLOSE_BUTTON_WIDTH - CLOSE_BUTTON_PADDING;
             close_button.top = CLOSE_BUTTON_PADDING;
-            close_button.right = paint_struct.rcPaint.right - CLOSE_BUTTON_PADDING;
+            close_button.right = window_rectangle.right - CLOSE_BUTTON_PADDING;
             close_button.bottom = TITLEBAR_HEIGHT - CLOSE_BUTTON_PADDING;
 
             HBRUSH close_brush = CreateSolidBrush(COLOR_5);
